@@ -35,10 +35,10 @@ public class Proxy1 {
 
         mStudents = new Student[]{mXiaoming, mXiaohong, mXiaojuan};
 
-        // test0();
+        test0();
         // test1();
         // test2();
-        test3();
+        //test3();
     }
 
     private void test3() {
@@ -222,10 +222,34 @@ public class Proxy1 {
 
                 subscriber.onNext(mXiaohong);
                 subscriber.onNext(mXiaoming);
-                subscriber.onNext(mXiaojuan);
-                log.d("call():OnSubscribe " + Thread.currentThread().getName());
+                //subscriber.onNext(mXiaojuan);
+                log.d("call(): OnSubscribe " + Thread.currentThread().getName());
             }
         };
+
+        Observable<Student> studentObservable = Observable.create(f);
+        //在生产事件之前发生
+        Observable<Student> studentObservable1 = studentObservable.doOnSubscribe(new Action0() {
+            @Override
+            public void call() {
+                log.d("call(): doOnSubscribe------ " + Thread.currentThread().getName());
+                SystemClock.sleep(3000);
+            }
+        });
+
+        // 指定 subscribe() 发生在 IO 线程
+        Observable<Student> studentObservable2 = studentObservable1.subscribeOn(Schedulers.io());
+
+        Observable<Student> studentObservable5 = studentObservable2.doOnNext(new Action1<Student>() {
+            @Override
+            public void call(Student student) {
+                log.d("call(): studentObservable5======  " + Thread.currentThread().getName());
+            }
+        });
+
+        // 指定 Subscriber 的回调发生在主线程
+        //Observable<Student> studentObservable3 = studentObservable5.observeOn(AndroidSchedulers.mainThread());
+
         Subscriber<Student> subscriber = new Subscriber<Student>() {
             @Override
             public void onStart() {
@@ -234,7 +258,7 @@ public class Proxy1 {
 
             @Override
             public void onNext(Student student) {
-                log.d("call(): StudentName  " + student.getName());
+                log.d("call(): StudentName  " + student.getName() + " " + Thread.currentThread().getName());
                 // log.d("call():subscribe " + Thread.currentThread().getName());
             }
 
@@ -247,37 +271,8 @@ public class Proxy1 {
             }
         };
 
-        Observable<Student> studentObservable = Observable.create(f);
-        //在生产事件之前发生
-        Observable<Student> studentObservable1 = studentObservable.doOnSubscribe(new Action0() {
-            @Override
-            public void call() {
-                log.d("call():doOnSubscribe------ " + Thread.currentThread().getName());
-                SystemClock.sleep(8000);
-            }
-        });
-
-        // 指定 subscribe() 发生在 IO 线程
-        Observable<Student> studentObservable2 = studentObservable1.subscribeOn(Schedulers.io());
-
-        Observable<Student> studentObservable5 = studentObservable2.doOnNext(new Action1<Student>() {
-            @Override
-            public void call(Student student) {
-                log.d("call(): studentObservable5======" + Thread.currentThread().getName());
-            }
-        });
-
-        // 指定 Subscriber 的回调发生在主线程
-        Observable<Student> studentObservable3 = studentObservable5.observeOn(AndroidSchedulers.mainThread());
-
-        Observable<Student> studentObservable4 = studentObservable3.doOnNext(new Action1<Student>() {
-            @Override
-            public void call(Student student) {
-                log.d("call(): studentObservable5======" + Thread.currentThread().getName());
-            }
-        });
-
-        studentObservable4.subscribe(subscriber);
+        studentObservable5.subscribe(subscriber);
+        //studentObservable3.subscribe(subscriber);
     }
 
     private class Student {

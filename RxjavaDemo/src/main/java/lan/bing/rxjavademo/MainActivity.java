@@ -14,8 +14,8 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.btn_go).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //new Proxy1().mian();
-                new Proxy2().mian();
+                new Proxy1().mian();
+                //new Proxy2().mian();
             }
         });
     }
