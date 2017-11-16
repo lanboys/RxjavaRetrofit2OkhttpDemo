@@ -15,22 +15,31 @@ public class Proxy2 {
 
     public void mian() {
 
-        Subscription subscribe = Observable.range(10, 5).subscribe(new Subscriber<Integer>() {
-            @Override
-            public void onCompleted() {
+        Observable<Integer> observable = Observable.range(10, 5);
 
-            }
+        Subscription subscribe = observable
+                .subscribe(new Subscriber<Integer>() {
 
-            @Override
-            public void onError(Throwable e) {
+                    @Override
+                    public void onStart() {
+                        log.e("onStart(): ");
+                    }
 
-            }
+                    @Override
+                    public void onCompleted() {
+                         log.e("onCompleted(): ");
+                    }
 
-            @Override
-            public void onNext(Integer integer) {
-                log.e("onNext(): " + integer);
-                log.d("onNext(): " + integer);
-            }
-        });
+                    @Override
+                    public void onError(Throwable e) {
+                        log.e("onError(): ");
+                    }
+
+                    @Override
+                    public void onNext(Integer integer) {
+                        log.e("onNext(): " + integer);
+                        log.d("onNext(): " + integer);
+                    }
+                });
     }
 }
