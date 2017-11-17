@@ -1,5 +1,6 @@
-package lan.bing.rxjavademo;
+package lan.bing.rxjavademo.test;
 
+import lan.bing.rxjavademo.LogUtil;
 import rx.Observable;
 import rx.Subscriber;
 import rx.Subscription;

@@ -1,12 +1,15 @@
-package lan.bing.rxjavademo;
+package lan.bing.rxjavademo.test;
 
 import android.os.SystemClock;
 
-import java.util.ArrayList;
 import java.util.List;
 
+import lan.bing.rxjavademo.LogUtil;
+import lan.bing.rxjavademo.domain.Course;
+import lan.bing.rxjavademo.domain.Student;
 import rx.Observable;
 import rx.Subscriber;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
@@ -234,13 +237,26 @@ public class Proxy1 {
             public void call() {
                 log.d("call(): doOnSubscribe------ " + Thread.currentThread().getName());
                 SystemClock.sleep(3000);
+
+                //myDoOnSubscribe();
+
             }
         });
 
         // 指定 subscribe() 发生在 IO 线程
         Observable<Student> studentObservable2 = studentObservable1.subscribeOn(Schedulers.io());
 
-        Observable<Student> studentObservable5 = studentObservable2.doOnNext(new Action1<Student>() {
+        Observable<Student> studentObservable4 = studentObservable2.compose(new Observable.Transformer<Student, Student>() {
+            @Override
+            public Observable<Student> call(Observable<Student> studentObservable) {
+
+                studentObservable = Observable.error(new RuntimeException("自定义的"));
+
+                return studentObservable;
+            }
+        });
+
+        final Observable<Student> studentObservable5 = studentObservable4.doOnNext(new Action1<Student>() {
             @Override
             public void call(Student student) {
                 log.d("call(): studentObservable5======  " + Thread.currentThread().getName());
@@ -250,77 +266,89 @@ public class Proxy1 {
         // 指定 Subscriber 的回调发生在主线程
         //Observable<Student> studentObservable3 = studentObservable5.observeOn(AndroidSchedulers.mainThread());
 
+        Observable<Student> studentObservable3 = studentObservable5.retryWhen(new Func1<Observable<? extends Throwable>, Observable<?>>() {
+            @Override
+            public Observable<?> call(final Observable<? extends Throwable> observable) {
+
+                log.d("call(): retryWhen  " + observable + " " + Thread.currentThread().getName());
+
+                Observable<Object> objectObservable = observable.flatMap(new Func1<Throwable, Observable<?>>() {
+                    @Override
+                    public Observable<?> call(Throwable throwable) {
+                        Observable<?> error = null;
+                        if (throwable instanceof RuntimeException) {
+
+                            //error = myDoOnSubscribe();
+                            //error = Observable.range(10, 2);
+                            error = Observable.error(throwable);
+                            //error = Observable.just(mXiaojuan);
+                        } else {
+
+                            error = Observable.error(throwable);
+
+                        }
+                        return error;
+                    }
+                });
+
+                return objectObservable;
+            }
+        });
+
         Subscriber<Student> subscriber = new Subscriber<Student>() {
             @Override
             public void onStart() {
-                // log.d("onStart(): "+ Thread.currentThread().getName());
+                log.d("onStart(): subscriber " + Thread.currentThread().getName());
             }
 
             @Override
             public void onNext(Student student) {
-                log.d("call(): StudentName  " + student.getName() + " " + Thread.currentThread().getName());
+                log.d("call(): subscriber StudentName  " + student.getName() + " " + Thread.currentThread().getName());
                 // log.d("call():subscribe " + Thread.currentThread().getName());
             }
 
             @Override
             public void onCompleted() {
+                log.d("onCompleted(): subscriber " + Thread.currentThread().getName());
             }
 
             @Override
             public void onError(Throwable e) {
+                log.d("onError(): subscriber " + e);
             }
         };
 
-        studentObservable5.subscribe(subscriber);
-        //studentObservable3.subscribe(subscriber);
+        //studentObservable5.subscribe(subscriber);
+        studentObservable3.subscribe(subscriber);
     }
 
-    private class Student {
+    private Observable<Integer> myDoOnSubscribe() {
+        Observable<Integer> observable = Observable.range(10, 2);
+        Subscription subscribe = observable
+                .subscribe(new Subscriber<Integer>() {
 
-        private String mName;
-        private List<Course> mCourses = new ArrayList<>();
+                    @Override
+                    public void onStart() {
+                        log.e("onStart(): " + Thread.currentThread().getName());
+                    }
 
-        Student(String name) {
-            mName = name;
-            mCourses.add(new Course(name + "--语文"));
-            mCourses.add(new Course(name + "--数学"));
-            mCourses.add(new Course(name + "--英语"));
-        }
+                    @Override
+                    public void onCompleted() {
+                        log.e("onCompleted(): " + Thread.currentThread().getName());
+                    }
 
-        String getName() {
-            return mName;
-        }
+                    @Override
+                    public void onError(Throwable e) {
+                        log.e("onError(): " + Thread.currentThread().getName());
+                    }
 
-        List<Course> getCourses() {
-            return mCourses;
-        }
+                    @Override
+                    public void onNext(Integer integer) {
+                        log.e("onNext(): " + integer + "  " + Thread.currentThread().getName());
+                    }
+                });
+        log.d("call(): doOnSubscribe======= " + Thread.currentThread().getName());
 
-        @Override
-        public String toString() {
-            return "Student{" +
-                    "mCourses=" + mCourses +
-                    ", mName='" + mName + '\'' +
-                    '}';
-        }
-    }
-
-    private class Course {
-
-        private String mName;
-
-        Course(String name) {
-            mName = name;
-        }
-
-        String getName() {
-            return mName;
-        }
-
-        @Override
-        public String toString() {
-            return "Course{" +
-                    "mName='" + mName + '\'' +
-                    '}';
-        }
+        return observable;
     }
 }
