@@ -35,6 +35,6 @@ dependencies {
 //    compile 'io.reactivex:rxandroid:1.2.1'
 
 //    compile project(':RxjavaLib')
-    compile project(':Rxandroid')
+    compile project(':rxandroid')
 
 }
