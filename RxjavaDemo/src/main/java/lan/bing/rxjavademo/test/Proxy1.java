@@ -256,17 +256,17 @@ public class Proxy1 {
             }
         });
 
-        final Observable<Student> studentObservable5 = studentObservable4.doOnNext(new Action1<Student>() {
-            @Override
-            public void call(Student student) {
-                log.d("call(): studentObservable5======  " + Thread.currentThread().getName());
-            }
-        });
+        //final Observable<Student> studentObservable5 = studentObservable4.doOnNext(new Action1<Student>() {
+        //    @Override
+        //    public void call(Student student) {
+        //        log.d("call(): studentObservable5======  " + Thread.currentThread().getName());
+        //    }
+        //});
 
         // 指定 Subscriber 的回调发生在主线程
         //Observable<Student> studentObservable3 = studentObservable5.observeOn(AndroidSchedulers.mainThread());
 
-        Observable<Student> studentObservable3 = studentObservable5.retryWhen(new Func1<Observable<? extends Throwable>, Observable<?>>() {
+        Observable<Student> studentObservable3 = studentObservable4.retryWhen(new Func1<Observable<? extends Throwable>, Observable<?>>() {
             @Override
             public Observable<?> call(final Observable<? extends Throwable> observable) {
 
