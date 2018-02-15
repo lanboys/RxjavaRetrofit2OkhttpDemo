@@ -1,1 +1,1 @@
-include ':RxjavaDemo', ':Retrofit2Demo', ':RxJavaSamples', ':RetrofitClient', ':DynamicProxyDemo', ':rxjava1.1.6', 'OkhttpDemo', ':rxandroid1.2.1'
+include ':RxjavaDemo', ':Retrofit2Demo', ':RxJavaSamples', ':RetrofitClient', ':rxjava1.1.6', 'OkhttpDemo', ':rxandroid1.2.1'
